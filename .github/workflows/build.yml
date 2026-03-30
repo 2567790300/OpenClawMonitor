@@ -30,21 +30,28 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Create Proper IPA for TrollStore
+      - name: Create IPA with xcodebuild
         run: |
-          # Find the built app
+          # Find the app
           APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "OpenClawMonitor.app" -type d 2>/dev/null | head -1)
-          echo "Found app at: $APP_PATH"
+          echo "App path: $APP_PATH"
 
-          # Create Payload folder structure for TrollStore
+          # Create a proper IPA structure for Sideloadly/TrollStore
+          # The app must be in Payload folder
+          rm -rf Payload OpenClawMonitor.ipa
           mkdir -p Payload
           cp -r "$APP_PATH" Payload/
 
-          # Create IPA with proper structure
-          zip -r OpenClawMonitor.ipa Payload
-
           # Verify contents
-          unzip -l OpenClawMonitor.ipa | head -20
+          ls -la Payload/
+
+          # Create the zip
+          cd Payload
+          zip -r ../OpenClawMonitor.ipa *
+          cd ..
+
+          # Verify IPA contents
+          unzip -l OpenClawMonitor.ipa
 
           ls -la OpenClawMonitor.ipa
 
