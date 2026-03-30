@@ -30,20 +30,21 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Create IPA with xcodebuild
+      - name: Create Proper IPA for TrollStore
         run: |
           # Find the built app
           APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "OpenClawMonitor.app" -type d 2>/dev/null | head -1)
           echo "Found app at: $APP_PATH"
 
-          # Create a proper IPA
-          mkdir -p output
-          cp -r "$APP_PATH" output/
+          # Create Payload folder structure for TrollStore
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
 
-          # Create the IPA using zip (proper structure for TrollStore)
-          cd output
-          zip -r ../OpenClawMonitor.ipa OpenClawMonitor.app
-          cd ..
+          # Create IPA with proper structure
+          zip -r OpenClawMonitor.ipa Payload
+
+          # Verify contents
+          unzip -l OpenClawMonitor.ipa | head -20
 
           ls -la OpenClawMonitor.ipa
 
