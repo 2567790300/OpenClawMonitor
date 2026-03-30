@@ -16,7 +16,6 @@ jobs:
       - name: Install XcodeGen
         run: |
           brew install xcodegen
-          xcodegen --version
 
       - name: Generate Xcode Project
         run: |
@@ -31,29 +30,25 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Find Built App
-        id: find-app
+      - name: Create IPA with xcodebuild
         run: |
+          # Find the built app
           APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "OpenClawMonitor.app" -type d 2>/dev/null | head -1)
-          echo "App path: $APP_PATH"
-          echo "app_path=$APP_PATH" >> $GITHUB_OUTPUT
+          echo "Found app at: $APP_PATH"
 
-      - name: Create IPA
-        run: |
+          # Create a proper IPA
           mkdir -p output
-          cp -r "${{ steps.find-app.outputs.app_path }}" ./output/OpenClawMonitor.app
+          cp -r "$APP_PATH" output/
+
+          # Create the IPA using zip (proper structure for TrollStore)
           cd output
-          zip -r OpenClawMonitor.app.zip OpenClawMonitor.app
-          mv OpenClawMonitor.app.zip ../OpenClawMonitor.ipa
+          zip -r ../OpenClawMonitor.ipa OpenClawMonitor.app
+          cd ..
+
+          ls -la OpenClawMonitor.ipa
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: OpenClawMonitor-IPA
           path: ./OpenClawMonitor.ipa
-
-      - name: Upload App Bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: OpenClawMonitor-App-Bundle
-          path: ./output/OpenClawMonitor.app
