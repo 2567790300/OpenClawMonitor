@@ -13,11 +13,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Print Working Directory
-        run: |
-          pwd
-          ls -la
-
       - name: Install XcodeGen
         run: |
           brew install xcodegen
@@ -26,10 +21,6 @@ jobs:
       - name: Generate Xcode Project
         run: |
           xcodegen generate
-
-      - name: List Project Files
-        run: |
-          ls -la *.xcodeproj 2>/dev/null || echo "No xcodeproj found"
 
       - name: Build iOS Project
         run: |
@@ -40,16 +31,29 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
+      - name: Find Built App
+        id: find-app
+        run: |
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "OpenClawMonitor.app" -type d 2>/dev/null | head -1)
+          echo "App path: $APP_PATH"
+          echo "app_path=$APP_PATH" >> $GITHUB_OUTPUT
+
       - name: Create IPA
         run: |
           mkdir -p output
-          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "OpenClawMonitor.app" -type d 2>/dev/null | head -1)
-          cp -r "$APP_PATH" ./output/
+          cp -r "${{ steps.find-app.outputs.app_path }}" ./output/OpenClawMonitor.app
           cd output
-          zip -r OpenClawMonitor.ipa OpenClawMonitor.app
+          zip -r OpenClawMonitor.app.zip OpenClawMonitor.app
+          mv OpenClawMonitor.app.zip ../OpenClawMonitor.ipa
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: OpenClawMonitor-IPA
-          path: ./output/OpenClawMonitor.ipa
+          path: ./OpenClawMonitor.ipa
+
+      - name: Upload App Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenClawMonitor-App-Bundle
+          path: ./output/OpenClawMonitor.app
