@@ -24,14 +24,14 @@ jobs:
           xcodegen --version
 
       - name: Generate Xcode Project
-        working-directory: ./OpenClawMonitor
         run: |
-          pwd
-          ls -la
           xcodegen generate
 
+      - name: List Project Files
+        run: |
+          ls -la *.xcodeproj 2>/dev/null || echo "No xcodeproj found"
+
       - name: Build iOS Project
-        working-directory: ./OpenClawMonitor
         run: |
           xcodebuild -project OpenClawMonitor.xcodeproj \
             -scheme OpenClawMonitor \
@@ -41,7 +41,6 @@ jobs:
             build
 
       - name: Create IPA
-        working-directory: ./OpenClawMonitor
         run: |
           mkdir -p output
           APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "OpenClawMonitor.app" -type d 2>/dev/null | head -1)
@@ -53,4 +52,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: OpenClawMonitor-IPA
-          path: ./OpenClawMonitor/output/OpenClawMonitor.ipa
+          path: ./output/OpenClawMonitor.ipa
